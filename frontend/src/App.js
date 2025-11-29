@@ -1,6 +1,5 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
-import { useReactToPrint } from "react-to-print";
 import { Bar } from "react-chartjs-2";
 import { INDUSTRY_DATA, COMPANY_SIZES } from "./constants";
 import {
@@ -20,6 +19,7 @@ import {
   DollarSign,
   Clock,
   Users,
+  Download,
   Zap,
   CheckCircle,
   ArrowRight,
@@ -27,7 +27,8 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { mcqQuestions } from "./questions";
-// Register ChartJS
+import html2pdf from "html2pdf.js";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -40,27 +41,31 @@ ChartJS.register(
   Legend
 );
 
-// --- 1. NEW COMPONENT: ROIReport ---
-// This component handles the printing logic safely because it only renders when data exists.
 const ROIReport = ({ reportData, formData }) => {
   const componentRef = useRef(null);
+  const handleDownloadPDF = () => {
+    const element = componentRef.current;
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `ROI_Report_${formData.department}`,
-    onAfterPrint: () => console.log("Print success"),
-    onPrintError: (error) => console.log("Print error", error),
-  });
+    const opt = {
+      margin: [0.5, 0.5, 0.5, 0.5],
+      filename: `AI_ROI_Report_${formData.department || "Analysis"}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 p-8 font-sans">
       {/* Floating Download Button */}
       <div className="fixed bottom-8 right-8 z-50 print:hidden">
         <button
-          onClick={handlePrint}
-          className="bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl hover:bg-slate-900 flex items-center gap-2 font-bold"
+          onClick={handleDownloadPDF}
+          className="bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl hover:bg-slate-900 flex items-center gap-3 font-bold text-lg"
         >
-          Download PDF
+          <Download size={20} /> Download PDF
         </button>
       </div>
 
@@ -636,9 +641,7 @@ function App() {
     );
   }
 
-  // Step Report
   if (step === "REPORT" && reportData) {
-    // HERE IS THE FIX: We render the separate component which initializes hooks correctly
     return <ROIReport reportData={reportData} formData={formData} />;
   }
 
