@@ -78,7 +78,7 @@ const ROIReport = ({ reportData, formData }) => {
         <div className="border-b pb-8 mb-8 flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-extrabold text-slate-900">
-              ROI & Cost Analysis
+              GenFox AI Strategy Report
             </h1>
             <p className="text-slate-500 mt-2 text-lg">
               {formData.organization_industry} | {formData.department}
@@ -219,7 +219,12 @@ const ROIReport = ({ reportData, formData }) => {
                 </thead>
                 <tbody className="divide-y">
                   <tr>
-                    <td className="px-4 py-3">LLM Token Consumption</td>
+                    <td className="px-4 py-3">
+                      LLM Token Consumption
+                      <span className="block text-xs text-green-600 font-medium">
+                        *Optimized via GenFox Self-Hosted
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-right font-bold">
                       $
                       {reportData.ai_cost_breakdown.llm_token_costs?.toLocaleString() ||
@@ -395,7 +400,7 @@ function App() {
       };
 
       const res = await axios.post(
-        "https://roi-backend-ggx3.onrender.com/calculate-roi",
+        "http://localhost:8000/calculate-roi",
         payload
       );
       setReportData(res.data);
@@ -523,7 +528,7 @@ function App() {
             {/* Human Count */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Number of Employees
+                Number of Employees in Department
               </label>
               <input
                 type="number"
