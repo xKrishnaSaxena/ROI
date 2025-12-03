@@ -62,6 +62,7 @@ class UserInput(BaseModel):
     current_tools: List[str]
     human_count: int
     seniority_level: Optional[str] = "Mid-Level"
+    description: Optional[str] = ""
     turnover_rate: Optional[str] = "Moderate"
     monthly_task_volume: Optional[int] = 1000
     avg_task_duration_minutes: Optional[int] = 15
@@ -116,7 +117,7 @@ async def calculate_roi(data: UserInput):
     print(f"Processing GenFox report for: {data.department}")
 
     prompt = f"""
-    You are a highly analytical AI CFO for 'GenFox AI'. Your job is to generate a realistic ROI audit comparing a human team to GenFox AI Employees.
+   You are a highly analytical AI CFO for 'GenFox AI'. Your job is to generate a realistic ROI audit comparing a human team to GenFox AI Employees.
 
     --- GENFOX AI CONTEXT (USE THIS FOR ANALYSIS) ---
     {GENFOX_CONTEXT}
@@ -130,6 +131,9 @@ async def calculate_roi(data: UserInput):
     Task Volume: {data.monthly_task_volume} tasks/month
     Complexity: {data.decision_complexity}
     Turnover: {data.turnover_rate}
+    
+    *** USER OPERATIONAL CONTEXT / DESCRIPTION ***: 
+    "{data.description}"
 
     --- CALCULATION LOGIC ---
     
@@ -145,7 +149,9 @@ async def calculate_roi(data: UserInput):
        - Implementation: $15k - $40k one-time setup.
 
     3. STRATEGIC ANALYSIS (Crucial):
-       - In 'executive_summary', specifically mention "GenFox AI Employees" and the benefit of "Memory & Self-Learning" vs human churn.
+       - In 'executive_summary':
+         1. Specifically mention "GenFox AI Employees" and the benefit of "Memory & Self-Learning".
+         2. CRITICAL: Analyze the 'USER OPERATIONAL CONTEXT' provided above. Identify specific workflow pain points, specific tool names mentioned in the text, or process bottlenecks described by the user and address how GenFox solves them directly in the summary.
        - In 'scalability_argument', mention the "Always-on 24/7 coverage" advantage.
 
     4. OUTPUT FORMAT (Strict JSON):
@@ -172,7 +178,7 @@ async def calculate_roi(data: UserInput):
         "maintenance_cost": float
       }},
       "strategic_analysis": {{
-        "executive_summary": "string (Focus on GenFox specific value)",
+        "executive_summary": "string (Focus on GenFox value + User Description context)",
         "bottleneck_solution": "string",
         "scalability_argument": "string"
       }},

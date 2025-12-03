@@ -356,6 +356,7 @@ function App() {
     department: "",
     current_tools: [],
     human_count: 5,
+    description: "",
   });
 
   // Helper to get dropdown options
@@ -523,6 +524,19 @@ function App() {
                   </span>
                 )}
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description / Operational Context
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Describe your current workflow challenges, specific tools you struggle with, or what you want the AI to solve..."
+                rows="3"
+                className="w-full p-2.5 border rounded-lg bg-white resize-none"
+              />
             </div>
 
             {/* Human Count */}
