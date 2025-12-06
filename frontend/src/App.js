@@ -25,10 +25,12 @@ import {
   ArrowRight,
   Server,
   ShieldAlert,
+  Briefcase,
 } from "lucide-react";
 import { mcqQuestions } from "./questions";
 import html2pdf from "html2pdf.js";
 
+// --- Register ChartJS ---
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -41,11 +43,11 @@ ChartJS.register(
   Legend
 );
 
+// --- REPORT COMPONENT (Standard) ---
 const ROIReport = ({ reportData, formData }) => {
   const componentRef = useRef(null);
   const handleDownloadPDF = () => {
     const element = componentRef.current;
-
     const opt = {
       margin: [0.5, 0.5, 0.5, 0.5],
       filename: `AI_ROI_Report_${formData.department || "Analysis"}.pdf`,
@@ -53,13 +55,11 @@ const ROIReport = ({ reportData, formData }) => {
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
     };
-
     html2pdf().set(opt).from(element).save();
   };
 
   return (
     <div className="min-h-screen bg-slate-100 p-8 font-sans">
-      {/* Floating Download Button */}
       <div className="fixed bottom-8 right-8 z-50 print:hidden">
         <button
           onClick={handleDownloadPDF}
@@ -69,7 +69,6 @@ const ROIReport = ({ reportData, formData }) => {
         </button>
       </div>
 
-      {/* Printable Document */}
       <div
         ref={componentRef}
         className="max-w-5xl mx-auto bg-white p-12 rounded-xl shadow-sm print:shadow-none"
@@ -106,7 +105,7 @@ const ROIReport = ({ reportData, formData }) => {
           </p>
         </div>
 
-        {/* Key Metrics Grid */}
+        {/* Metrics Grid */}
         <div className="grid grid-cols-3 gap-6 mb-12">
           <div className="col-span-1 bg-green-50 border border-green-100 p-6 rounded-xl">
             <div className="text-green-600 mb-2">
@@ -143,7 +142,7 @@ const ROIReport = ({ reportData, formData }) => {
           </div>
         </div>
 
-        {/* Detailed Cost Breakdown Section */}
+        {/* Cost Tables */}
         <div className="grid grid-cols-2 gap-10 mb-12">
           {/* Human Costs */}
           <div>
@@ -169,11 +168,11 @@ const ROIReport = ({ reportData, formData }) => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3">Benefits & Insurance (20-30%)</td>
+                    <td className="px-4 py-3">Benefits & Insurance</td>
                     <td className="px-4 py-3 text-right text-slate-600">
                       $
                       {reportData.human_cost_breakdown.benefits_insurance?.toLocaleString() ||
-                        "N/A"}
+                        "0"}
                     </td>
                   </tr>
                   <tr>
@@ -184,7 +183,7 @@ const ROIReport = ({ reportData, formData }) => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3">Software Licenses (Seats)</td>
+                    <td className="px-4 py-3">Software Licenses</td>
                     <td className="px-4 py-3 text-right text-slate-600">
                       $
                       {reportData.human_cost_breakdown.tool_licensing_cost.toLocaleString()}
@@ -219,12 +218,7 @@ const ROIReport = ({ reportData, formData }) => {
                 </thead>
                 <tbody className="divide-y">
                   <tr>
-                    <td className="px-4 py-3">
-                      LLM Token Consumption
-                      <span className="block text-xs text-green-600 font-medium">
-                        *Optimized via GenFox Self-Hosted
-                      </span>
-                    </td>
+                    <td className="px-4 py-3">LLM Token Consumption</td>
                     <td className="px-4 py-3 text-right font-bold">
                       $
                       {reportData.ai_cost_breakdown.llm_token_costs?.toLocaleString() ||
@@ -232,7 +226,7 @@ const ROIReport = ({ reportData, formData }) => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3">Server & Vector DB Hosting</td>
+                    <td className="px-4 py-3">Server & Hosting</td>
                     <td className="px-4 py-3 text-right text-slate-600">
                       $
                       {reportData.ai_cost_breakdown.server_hosting_costs?.toLocaleString() ||
@@ -240,9 +234,7 @@ const ROIReport = ({ reportData, formData }) => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3">
-                      Integration & Setup (Amortized)
-                    </td>
+                    <td className="px-4 py-3">Implementation (Amortized)</td>
                     <td className="px-4 py-3 text-right text-slate-600">
                       $
                       {reportData.ai_cost_breakdown.implementation_fee.toLocaleString()}
@@ -270,7 +262,7 @@ const ROIReport = ({ reportData, formData }) => {
           </div>
         </div>
 
-        {/* Charts Row */}
+        {/* Charts & Risks */}
         <div className="grid grid-cols-2 gap-8 mb-12">
           <div className="h-64">
             <h4 className="text-sm font-bold text-gray-500 mb-4 uppercase text-center">
@@ -299,7 +291,7 @@ const ROIReport = ({ reportData, formData }) => {
           </div>
           <div>
             <h4 className="text-sm font-bold text-gray-500 mb-2 uppercase">
-              Hidden Risks Analysis
+              Operational Impact
             </h4>
             <ul className="space-y-3 mt-4">
               <li className="flex items-start gap-3">
@@ -308,34 +300,27 @@ const ROIReport = ({ reportData, formData }) => {
                   size={20}
                 />
                 <p className="text-sm text-gray-600">
-                  <span className="font-bold text-gray-800">Human Risk:</span>{" "}
-                  High turnover ({formData.turnover_rate}) creates constant
-                  knowledge gaps and retraining costs.
+                  <span className="font-bold text-gray-800">Churn Risk:</span>{" "}
+                  Current turnover ({formData.turnover_rate}) requires constant
+                  retraining. GenFox retains 100% of knowledge.
                 </p>
               </li>
               <li className="flex items-start gap-3">
-                <Server className="text-blue-500 flex-shrink-0" size={20} />
+                <Zap className="text-blue-500 flex-shrink-0" size={20} />
                 <p className="text-sm text-gray-600">
-                  <span className="font-bold text-gray-800">AI Risk:</span>{" "}
-                  Requires supervision. We factored in{" "}
-                  {reportData.ai_cost_breakdown.maintenance_cost
-                    ? "$" +
-                      reportData.ai_cost_breakdown.maintenance_cost.toLocaleString()
-                    : ""}{" "}
-                  for human oversight to prevent hallucinations.
+                  <span className="font-bold text-gray-800">Scalability:</span>{" "}
+                  With projected growth ({formData.growth_projection}), hiring
+                  will become a bottleneck. AI scales instantly.
                 </p>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t pt-6 mt-8">
           <p className="text-xs text-gray-400 text-center">
-            Calculations based on {formData.organization_industry} market rates
-            (2024-2025). Salary data retrieved via Gemini AI search. Token costs
-            estimated using GPT-4o / Claude 3.5 Sonnet equivalent pricing
-            models.
+            Calculations based on 2024-2025 market data. Optimized for GenFox
+            Self-Hosted Infrastructure.
           </p>
         </div>
       </div>
@@ -343,47 +328,80 @@ const ROIReport = ({ reportData, formData }) => {
   );
 };
 
-// --- 2. MAIN APP COMPONENT ---
+// --- MAIN APP COMPONENT ---
 function App() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
 
-  // --- Dynamic Form State ---
+  // --- Dynamic State for Departments ---
+  const [generatedDepartments, setGeneratedDepartments] = useState([]);
+  const [isFetchingDepts, setIsFetchingDepts] = useState(false);
+  const [selectedDeptOption, setSelectedDeptOption] = useState("");
+
   const [formData, setFormData] = useState({
     organization_industry: "",
     company_size: "",
     department: "",
-    current_tools: [],
     human_count: 5,
     description: "",
+    // Initialize fields from your questions.js
+    seniority_level: "Mid-Level Specialist (3-5 years experience)",
+    turnover_rate: "Moderate (10% - 20%)",
+    training_time: "1 - 4 weeks",
+    monthly_task_volume: 2000,
+    avg_task_duration_minutes: 20,
+    coverage_hours: "Standard Business Hours",
+    context_switching: "Occasionally",
+    error_rate: "Low (1-3%)",
+    decision_complexity: "Balanced",
+    growth_projection: "Steady (10-20%)",
+    primary_bottleneck: "Hiring Speed",
   });
-
-  // Helper to get dropdown options
-  const departments = formData.organization_industry
-    ? INDUSTRY_DATA[formData.organization_industry]?.departments || []
-    : [];
-
-  const availableTools = formData.organization_industry
-    ? INDUSTRY_DATA[formData.organization_industry]?.tools || []
-    : [];
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const toggleTool = (tool) => {
-    setFormData((prev) => {
-      const exists = prev.current_tools.includes(tool);
-      if (exists) {
-        return {
-          ...prev,
-          current_tools: prev.current_tools.filter((t) => t !== tool),
-        };
-      } else {
-        return { ...prev, current_tools: [...prev.current_tools, tool] };
-      }
+  // --- 1. Industry Change Handler: Fetch Departments ---
+  const handleIndustryChange = async (e) => {
+    const industry = e.target.value;
+
+    // Reset departments when industry changes
+    setFormData({
+      ...formData,
+      organization_industry: industry,
+      department: "",
     });
+    setSelectedDeptOption("");
+    setGeneratedDepartments([]);
+
+    if (industry) {
+      setIsFetchingDepts(true);
+      try {
+        const res = await axios.post(
+          "https://roi-backend-ggx3.onrender.com/generate-departments",
+          { industry }
+        );
+        setGeneratedDepartments(res.data.departments);
+      } catch (err) {
+        console.error("Failed to fetch departments", err);
+        // Fallback or leave empty so they use "Other"
+      } finally {
+        setIsFetchingDepts(false);
+      }
+    }
+  };
+
+  // --- 2. Department Select Handler ---
+  const handleDepartmentSelect = (e) => {
+    const val = e.target.value;
+    setSelectedDeptOption(val);
+    if (val === "Other") {
+      setFormData({ ...formData, department: "" }); // Clear so they can type
+    } else {
+      setFormData({ ...formData, department: val });
+    }
   };
 
   const handleOptionSelect = (field, value) => {
@@ -398,6 +416,9 @@ function App() {
       const payload = {
         ...formData,
         human_count: parseInt(formData.human_count),
+        monthly_task_volume: parseInt(formData.monthly_task_volume),
+        avg_task_duration_minutes: parseInt(formData.avg_task_duration_minutes),
+        current_tools: [],
       };
 
       const res = await axios.post(
@@ -434,14 +455,7 @@ function App() {
               <select
                 name="organization_industry"
                 value={formData.organization_industry}
-                onChange={(e) => {
-                  setFormData({
-                    ...formData,
-                    organization_industry: e.target.value,
-                    department: "",
-                    current_tools: [],
-                  });
-                }}
+                onChange={handleIndustryChange}
                 className="w-full p-2.5 border rounded-lg bg-white"
               >
                 <option value="">Select Industry...</option>
@@ -473,68 +487,78 @@ function App() {
               </select>
             </div>
 
-            {/* Department */}
+            {/* Dynamic Department Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Department
               </label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                disabled={!formData.organization_industry}
-                className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
-              >
-                <option value="">
-                  {formData.organization_industry
-                    ? "Select Department..."
-                    : "Select Industry First"}
-                </option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
+              <div className="relative">
+                <select
+                  name="department_select"
+                  value={selectedDeptOption}
+                  onChange={handleDepartmentSelect}
+                  disabled={!formData.organization_industry || isFetchingDepts}
+                  className="w-full p-2.5 border rounded-lg bg-white disabled:bg-gray-100"
+                >
+                  <option value="">
+                    {isFetchingDepts
+                      ? "Asking GenFox AI..."
+                      : formData.organization_industry
+                      ? "Select Department..."
+                      : "Select Industry First"}
                   </option>
-                ))}
-              </select>
-            </div>
 
-            {/* Tools */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tools Used
-              </label>
-              <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px] bg-gray-50">
-                {availableTools.length > 0 ? (
-                  availableTools.map((tool) => (
-                    <button
-                      key={tool}
-                      onClick={() => toggleTool(tool)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-                        formData.current_tools.includes(tool)
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
-                      }`}
-                    >
-                      {tool}
-                    </button>
-                  ))
-                ) : (
-                  <span className="text-gray-400 text-sm">
-                    Select Industry first
-                  </span>
+                  {/* Generated Options */}
+                  {generatedDepartments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+
+                  {/* Divider and Other */}
+                  {generatedDepartments.length > 0 && (
+                    <option disabled>──────────</option>
+                  )}
+                  <option value="Other">Other / Custom Role</option>
+                </select>
+
+                {isFetchingDepts && (
+                  <div className="absolute right-8 top-3">
+                    <Loader2 className="animate-spin text-blue-500" size={16} />
+                  </div>
                 )}
               </div>
+
+              {/* Custom Input if "Other" is selected */}
+              {selectedDeptOption === "Other" && (
+                <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="block text-xs font-medium text-blue-600 mb-1">
+                    Enter Custom Department Name:
+                  </label>
+                  <input
+                    type="text"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    placeholder="e.g. specialized underwriting team..."
+                    className="w-full p-2.5 border border-blue-300 rounded-lg bg-blue-50 focus:ring-2 focus:ring-blue-200"
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description / Operational Context
+                Tools & Operational Context
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Describe your current workflow challenges, specific tools you struggle with, or what you want the AI to solve..."
-                rows="3"
+                placeholder="List the tools you use (e.g. Jira, Salesforce) and describe your main workflow challenges..."
+                rows="4"
                 className="w-full p-2.5 border rounded-lg bg-white resize-none"
               />
             </div>
@@ -617,7 +641,7 @@ function App() {
     );
   }
 
-  // Step Review
+  // Review Step
   if (step === "REVIEW") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -626,26 +650,13 @@ function App() {
             Assessment Complete
           </h2>
           <p className="text-gray-600 mb-8">
-            We have gathered 15+ data points. Our AI CFO is now ready to
-            generate a conservative, detailed cost analysis.
+            Gathered {Object.keys(formData).length} data points. Ready to
+            analyze.
           </p>
           {loading ? (
             <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-xl shadow-lg">
               <Loader2 className="animate-spin text-blue-600" size={48} />
-              <div className="text-left space-y-2">
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  <CheckCircle size={14} className="text-green-500" />{" "}
-                  Retrieving market salaries...
-                </p>
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  <CheckCircle size={14} className="text-green-500" />{" "}
-                  Calculating token consumption...
-                </p>
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  <CheckCircle size={14} className="text-green-500" />{" "}
-                  Estimating server & vector DB costs...
-                </p>
-              </div>
+              <p className="text-sm text-gray-500">Calculating ROI...</p>
             </div>
           ) : (
             <button
@@ -660,6 +671,7 @@ function App() {
     );
   }
 
+  // Report Step
   if (step === "REPORT" && reportData) {
     return <ROIReport reportData={reportData} formData={formData} />;
   }

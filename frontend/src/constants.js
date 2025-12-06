@@ -1,5 +1,3 @@
-// constants.js
-
 export const COMPANY_SIZES = [
   "Startup (1-10)",
   "Small Business (11-50)",
@@ -16,7 +14,6 @@ export const INDUSTRY_DATA = {
       "DevOps / SRE",
       "Quality Assurance (QA)",
     ],
-    tools: ["Zendesk", "Intercom", "Jira", "Salesforce", "GitHub", "PagerDuty"],
   },
   "E-Commerce / Retail": {
     departments: [
@@ -25,7 +22,6 @@ export const INDUSTRY_DATA = {
       "Inventory Analysis",
       "Digital Marketing",
     ],
-    tools: ["Shopify", "Magento", "Gorgias", "Klaviyo", "NetSuite", "Excel"],
   },
   "Healthcare / MedTech": {
     departments: [
@@ -34,7 +30,6 @@ export const INDUSTRY_DATA = {
       "Claims Processing",
       "Compliance Audit",
     ],
-    tools: ["Epic", "Cerner", "DrChrono", "Kareo", "AthenaHealth"],
   },
   "Finance / Fintech": {
     departments: [
@@ -43,7 +38,6 @@ export const INDUSTRY_DATA = {
       "Fraud Detection",
       "Account Reconciliation",
     ],
-    tools: ["Bloomberg", "Quickbooks", "Xero", "Plaid", "Fiserv", "Tableau"],
   },
   "Legal Services": {
     departments: [
@@ -52,7 +46,6 @@ export const INDUSTRY_DATA = {
       "Client Intake",
       "Document Discovery",
     ],
-    tools: ["Clio", "LexisNexis", "Westlaw", "DocuSign", "iManage"],
   },
   "HR / Recruitment": {
     departments: [
@@ -61,7 +54,6 @@ export const INDUSTRY_DATA = {
       "Payroll Administration",
       "Employee Relations",
     ],
-    tools: ["Workday", "BambooHR", "Greenhouse", "Lever", "ADP"],
   },
   "Logistics / Supply Chain": {
     departments: [
@@ -70,7 +62,6 @@ export const INDUSTRY_DATA = {
       "Freight Bill Audit",
       "Warehouse Management",
     ],
-    tools: ["SAP", "Oracle SCM", "Flexport", "Samsara", "Descartes"],
   },
   "Real Estate": {
     departments: [
@@ -78,6 +69,5 @@ export const INDUSTRY_DATA = {
       "Lease Administration",
       "Lead Qualification",
     ],
-    tools: ["Yardi", "AppFolio", "Zillow Premier", "Buildium"],
   },
 };
