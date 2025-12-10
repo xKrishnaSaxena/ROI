@@ -1,20 +1,31 @@
 import os
 import uvicorn
+from datetime import datetime, timedelta
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel,EmailStr,Field
 from typing import List, Optional
-
+from pymongo import MongoClient
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-
+from passlib.context import CryptContext
+from jose import JWTError, jwt
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017") 
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey") 
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 
 client = genai.Client(api_key=API_KEY)
-
-app = FastAPI(title="GenFox AI ROI Calculator API")
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client["genfox_db"]
+users_collection = db["users"]
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+app = FastAPI(title="GenFox AI API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ... [KEEP GENFOX_CONTEXT STRING EXACTLY AS IT IS] ...
 GENFOX_CONTEXT = """
 ## **1. Overall GenFox AI Context:**
 GenFox AI is an workforce platform that create “AI Employees” (like AI Data Analyst, AI HR) for enterprises that work inside existing enterprise tools and take over real operational responsibilities that today require full‑time humans. Unlike human employees who are limited by working hours, availability, and ramp‑up time, these AI Employees are always‑on, scale instantly, and don’t need re‑training when people leave.
@@ -40,6 +50,24 @@ Each AI Employee is role‑based and tool‑native: it logs into tools through s
 - **Scalable orchestration**: Handles cross-tool workflows.
 - **Self-Hosted LLM**: GenFox supports self-hosted deployment to drastically reduce token costs compared to public APIs.
 """
+
+# --- AUTH MODELS ---
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: Optional[str] = None
+    company_name: Optional[str] = None
+
+class UserResponse(BaseModel):
+    id: str = Field(alias="_id")
+    email: EmailStr
+    full_name: Optional[str] = None
+    company_name: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: dict
 
 # --- NEW MODELS FOR DEPARTMENT GENERATION ---
 class DepartmentRequest(BaseModel):
@@ -68,7 +96,6 @@ class UserInput(BaseModel):
     growth_projection: Optional[str] = "Steady (10-20%)"
     primary_bottleneck: Optional[str] = "Hiring Speed"
 
-# ... [KEEP HumanCostBreakdown, AICostBreakdown, ROIMetrics, StrategicAnalysis, DetailedReport CLASSES AS THEY ARE] ...
 class HumanCostBreakdown(BaseModel):
     salary_overhead: float
     benefits_insurance: float
@@ -114,7 +141,77 @@ def clean_json_text(text: str) -> str:
         text = text[:-3]
     return text.strip()
 
-# --- NEW ENDPOINT: GENERATE DEPARTMENTS ---
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@app.post("/auth/signup", response_model=Token)
+async def signup(user: UserCreate):
+    # Check if user exists
+    if users_collection.find_one({"email": user.email}):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = get_password_hash(user.password)
+    new_user = {
+        "email": user.email,
+        "hashed_password": hashed_password,
+        "full_name": user.full_name,
+        "company_name": user.company_name,
+        "created_at": datetime.utcnow()
+    }
+    
+    result = users_collection.insert_one(new_user)
+    
+    # Create Token immediately after signup
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    
+    user_info = {
+        "id": str(result.inserted_id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "company_name": user.company_name
+    }
+
+    return {"access_token": access_token, "token_type": "bearer", "user": user_info}
+
+@app.post("/auth/login", response_model=Token)
+async def login(user_data: UserCreate): # Using UserCreate schema for simplicity, but strictly should separate
+    user = users_collection.find_one({"email": user_data.email})
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    if not verify_password(user_data.password, user["hashed_password"]):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user["email"]}, expires_delta=access_token_expires
+    )
+    
+    user_info = {
+        "id": str(user["_id"]),
+        "email": user["email"],
+        "full_name": user.get("full_name"),
+        "company_name": user.get("company_name")
+    }
+
+    return {"access_token": access_token, "token_type": "bearer", "user": user_info}
+
 @app.post("/generate-departments", response_model=DepartmentList)
 async def generate_departments(req: DepartmentRequest):
     print(f"Generating departments for: {req.industry}")
@@ -136,6 +233,7 @@ async def generate_departments(req: DepartmentRequest):
         )
         return DepartmentList(**json.loads(clean_json_text(response.text)))
     except Exception as e:
+        print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

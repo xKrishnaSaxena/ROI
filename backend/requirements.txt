@@ -3,5 +3,10 @@ uvicorn[standard]==0.30.6
 
 pydantic==2.9.2
 python-dotenv==1.0.1
-
+pydantic[email]
 google-genai==0.5.0
+pymongo
+passlib[bcrypt] 
+python-jose[cryptography] 
+python-multipart
+bcrypt==3.2.2
