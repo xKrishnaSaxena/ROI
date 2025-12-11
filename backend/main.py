@@ -244,6 +244,7 @@ async def calculate_roi(data: UserInput):
     
     prompt = f"""
     You are a highly analytical AI CFO for 'GenFox AI'. Your job is to generate a realistic ROI audit comparing a human team to GenFox AI Employees.
+    - If you calculate or output any ROI percentage values, they MUST be between 0% and 100% (inclusive). Never output ROI values above 100%; adjust your calculations so the final ROI is capped at 100%.
 
     --- GENFOX AI CONTEXT ---
     {GENFOX_CONTEXT}
